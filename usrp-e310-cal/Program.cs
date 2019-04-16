@@ -86,12 +86,9 @@ namespace usrp_e310_cal
 
 				if (!serialPort.Open())
 					return status;
-				
 
 				status = HandleLogin(serialPort, username, password);
 				status = HandleCal(serialPort);
-
-			
 
 			}
 
@@ -198,7 +195,8 @@ namespace usrp_e310_cal
 			if (serialPort.Receiver.state ==
 				Constants.ReceiverStates.TxDcOffsetCalComplete)
 			{
-				valid = serialPort.Write(Constants.UHD_Cal_Reports.uhd_cal_rx_iq_balance);
+				// maybe get all reports in a list, then iterate through the list
+				valid = serialPort.Write(Constants.UHD_Cal_Reports.reportDir);
 				while (serialPort.Receiver.state ==
 					Constants.ReceiverStates.TxDcOffsetCalComplete) ;
 			}
@@ -206,7 +204,7 @@ namespace usrp_e310_cal
 			if (serialPort.Receiver.state ==
 				Constants.ReceiverStates.RxIqReportDownloaded)
 			{
-				valid = serialPort.Write(Constants.UHD_Cal_Reports.uhd_cal_tx_iq_balance);
+				valid = serialPort.Write(Constants.UHD_Cal_Reports.reportDir);
 				while (serialPort.Receiver.state ==
 					Constants.ReceiverStates.RxIqReportDownloaded) ;
 			}
@@ -214,7 +212,7 @@ namespace usrp_e310_cal
 			if (serialPort.Receiver.state ==
 				Constants.ReceiverStates.TxIqReportDownloaded)
 			{
-				valid = serialPort.Write(Constants.UHD_Cal_Reports.uhd_cal_tx_dc_offset);
+				valid = serialPort.Write(Constants.UHD_Cal_Reports.reportDir);
 				while (serialPort.Receiver.state ==
 					Constants.ReceiverStates.TxIqReportDownloaded) ;
 			}

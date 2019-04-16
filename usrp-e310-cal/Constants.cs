@@ -37,9 +37,8 @@ namespace usrp_e310_cal
 
 		public class UHD_Cal_Reports
 		{
-			public const string uhd_cal_rx_iq_balance = "/usr/bin/uhd_cal_rx_iq_balance --verbose";
-			public const string uhd_cal_tx_iq_balance = "/usr/bin/uhd_cal_tx_iq_balance --verbose";
-			public const string uhd_cal_tx_dc_offset = "/usr/bin/uhd_cal_tx_dc_offset --verbose";
+			public const string reportDir = "${HOME}/.uhd/cal";
+			public const string reportBackup = "${HOME}/.uhd/backup";
 		}
 
 		public class UHD_Cal_Msg
@@ -65,6 +64,7 @@ namespace usrp_e310_cal
 			public const int RxIqReportDownloaded = 7;
 			public const int TxIqReportDownloaded = 8;
 			public const int TxDcOffsetReportDownloaded = 9;
+			public const int ReceiverError = 100;
 
 
 		}

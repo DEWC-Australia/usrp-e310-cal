@@ -53,13 +53,11 @@ namespace usrp_e310_cal
 				case Constants.ReceiverStates.LoggedIn:
 					if (data.Contains(Constants.UHD_Cal_Msg.BoardError)) // start running cals
 					{
-						Console.WriteLine(data);
-						return Constants.ReceiverStates.LoggedIn; // return to start of cal
+						return Constants.ReceiverStates.ReceiverError; // return to start of cal
 					}
 					else if (data.StartsWith(Constants.UHD_Cal_Msg.UnknownError)) // unrecognised Error
 					{
-						Console.WriteLine(data);
-						return Constants.ReceiverStates.LoggedIn; // return to start of cal
+						return Constants.ReceiverStates.ReceiverError; // return to start of cal
 					}
 					else if(data.Equals(Constants.UHD_Cal_Msg.Success))
 					{
@@ -69,13 +67,11 @@ namespace usrp_e310_cal
 				case Constants.ReceiverStates.RxIqCalComplete:
 					if (data.Contains(Constants.UHD_Cal_Msg.BoardError)) // start running cals
 					{
-						Console.WriteLine(data);
-						return Constants.ReceiverStates.LoggedIn; // return to start of cal
+						return Constants.ReceiverStates.ReceiverError; // return to start of cal
 					}
 					else if (data.StartsWith(Constants.UHD_Cal_Msg.UnknownError)) // unrecognised Error
 					{
-						Console.WriteLine(data);
-						return Constants.ReceiverStates.LoggedIn; // return to start of cal
+						return Constants.ReceiverStates.ReceiverError; // return to start of cal
 					}
 					else if (data.Equals(Constants.UHD_Cal_Msg.Success))
 					{
@@ -85,13 +81,11 @@ namespace usrp_e310_cal
 				case Constants.ReceiverStates.TxIqCalComplete:
 					if (data.Contains(Constants.UHD_Cal_Msg.BoardError)) // start running cals
 					{
-						Console.WriteLine(data);
-						return Constants.ReceiverStates.LoggedIn; // return to start of cal
+						return Constants.ReceiverStates.ReceiverError; // return to start of cal
 					}
 					else if (data.StartsWith(Constants.UHD_Cal_Msg.UnknownError)) // unrecognised Error
 					{
-						Console.WriteLine(data);
-						return Constants.ReceiverStates.LoggedIn; // return to start of cal
+						return Constants.ReceiverStates.ReceiverError; // return to start of cal
 					}
 					else if (data.Equals(Constants.UHD_Cal_Msg.Success))
 					{
@@ -101,13 +95,11 @@ namespace usrp_e310_cal
 				case Constants.ReceiverStates.TxDcOffsetCalComplete:
 					if (data.Contains(Constants.UHD_Cal_Msg.BoardError)) // start running cals
 					{
-						Console.WriteLine(data);
-						return Constants.ReceiverStates.LoggedIn; // return to start of cal
+						return Constants.ReceiverStates.ReceiverError; // return to start of cal
 					}
 					else if (data.StartsWith(Constants.UHD_Cal_Msg.UnknownError)) // unrecognised Error
 					{
-						Console.WriteLine(data);
-						return Constants.ReceiverStates.LoggedIn; // return to start of cal
+						return Constants.ReceiverStates.ReceiverError; // return to start of cal
 					}
 					else if (data.Equals(Constants.UHD_Cal_Msg.Success))
 					{
@@ -127,6 +119,12 @@ namespace usrp_e310_cal
 					// need to write these to file
 					break;
 				case Constants.ReceiverStates.TxDcOffsetReportDownloaded:
+					// get reports
+					//keep reading until reports are read
+					// need to write these to file
+					break;
+
+				case Constants.ReceiverStates.ReceiverError:
 					// get reports
 					//keep reading until reports are read
 					// need to write these to file
