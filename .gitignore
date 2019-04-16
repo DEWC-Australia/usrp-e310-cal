@@ -1,3 +1,8 @@
 .vs/
 usrp-e310-cal/obj/project.assets.json
 usrp-e310-cal/obj/
+usrp-e310-cal/bin/Debug/netcoreapp2.2/usrp-e310-cal.pdb
+usrp-e310-cal/bin/Debug/usrp-e310-cal.0.0.1.nupkg
+usrp-e310-cal/bin/Release/netcoreapp2.2/usrp-e310-cal.deps.json
+usrp-e310-cal/bin/
+usrp-e310-cal/Properties/
