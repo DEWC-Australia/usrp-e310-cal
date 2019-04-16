@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "usrp-e310-cal": {
+      "commandName": "Project",
+      "commandLineArgs": "-u:root -p:"
+    }
+  }
+}
