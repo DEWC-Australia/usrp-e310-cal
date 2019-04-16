@@ -2,7 +2,7 @@
   "profiles": {
     "usrp-e310-cal": {
       "commandName": "Project",
-      "commandLineArgs": "-u:root -p:"
+      "commandLineArgs": "-u:root -p: -com:3"
     }
   }
 }

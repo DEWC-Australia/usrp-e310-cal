@@ -9,12 +9,16 @@ namespace usrp_e310_cal
 
 	class SerialPortFacade
 	{
-		private SerialPort _serialPort;
-		private bool Configured = false;
+		public SerialPortReceiver Receiver { get; set; }
 
-		public SerialPortFacade(string comPort, int baudRate, Parity parity, int dataBit, StopBits stopBits, Handshake handshaking)
+		private SerialPort _serialPort;
+		public bool Configured { get; private set; }
+
+		public SerialPortFacade(int comPort, int baudRate, Parity parity, int dataBit, StopBits stopBits, Handshake handshaking, SerialPortReceiver receiver)
 		{
+			Receiver = receiver;
 			_serialPort = new SerialPort();
+			Configured = false;
 			Configured = Configure(comPort, baudRate, parity, dataBit, stopBits, handshaking);
 		}
 
@@ -24,16 +28,38 @@ namespace usrp_e310_cal
 			{
 				_serialPort.DataReceived += DataReceivedHandler;
 
-				_serialPort.Open();
+				try
+				{
+					_serialPort.Open();
+				}catch(Exception ex)
+				{
+					if (Constants.VerboseMode)
+						Console.WriteLine(ex.Message);
+
+					return false;
+				}
+				
 			}
 			else
 			{
 				if (Constants.VerboseMode)
 					Console.WriteLine("Serial Port is not configured and cannot be opened.");
 			}
- 
+
+			FindReceiverState();
+
 			return _serialPort.IsOpen;
 		}
+
+		public void FindReceiverState()
+		{
+			if (_serialPort.IsOpen)
+				Write("");
+
+			while (Receiver.state == Constants.ReceiverStates.StartUp) ;
+		}
+
+		public bool IsOpen => _serialPort.IsOpen;
 
 		public bool Close()
 		{
@@ -61,21 +87,16 @@ namespace usrp_e310_cal
 		{
 			SerialPort sp = (SerialPort)sender;
 			string indata = sp.ReadExisting();
-			ProcessReceivedData(indata);
-		}
-
-		private void ProcessReceivedData(string data)
-		{
+			Receiver.Process(indata);
 			if (Constants.VerboseMode)
 			{
 				Console.WriteLine("Data Received:");
-				Console.WriteLine(data);
+				Console.WriteLine(indata);
 			}
-			// this maybe an composed class which uniquely handles the received data to make the serial port generic
-
 		}
 
-		private bool Configure(string comPort, int baudRate, Parity parity, int dataBit, StopBits stopBits, Handshake handshaking)
+
+		private bool Configure(int comPort, int baudRate, Parity parity, int dataBit, StopBits stopBits, Handshake handshaking)
 		{
 			bool available = SetPortName(comPort);
 			if (!available)
@@ -97,28 +118,29 @@ namespace usrp_e310_cal
 			return available;
 		}
 
-		private bool SetPortName(string portName)
+		private bool SetPortName(int port)
 		{
 
 			if(Constants.VerboseMode)
-				Console.WriteLine($"Testing for port: {portName}");
+				Console.WriteLine($"Testing for port: COM{port}");
 
 			bool portAvailable = false;
-			foreach (string port in SerialPort.GetPortNames())
+			foreach (string portName in SerialPort.GetPortNames())
 			{
-				if (port.ToLower().Equals(port.ToLower()))
+				if (portName.ToUpper().Equals($"COM{port}"))
 				{
+					portAvailable = true;
 					break;
 				}
 			}
 
-			if (portAvailable || !(portName.ToLower()).StartsWith("com"))
+			if (portAvailable)
 			{
 
-				_serialPort.PortName = portName;
+				_serialPort.PortName = $"COM{port}";
 
 				if (Constants.VerboseMode)
-					Console.WriteLine($"Port: {portName} available and setup.");
+					Console.WriteLine($"Port: COM{port} available and setup.");
 			}
 
 			return portAvailable;

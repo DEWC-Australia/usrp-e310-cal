@@ -22,8 +22,13 @@ namespace usrp_e310_cal
 				invalid = HandleFourOptions(serialPort, args);
 			}
 
+			if(serialPort != null && serialPort.IsOpen)
+			{
+				serialPort.Close();
+			}
+
 			if(!invalid)
-				Console.WriteLine("Command line inputs not supported use --help for input format");
+				Console.WriteLine("Error detected. For help with command line inputs use --help");
 
 			return;
 		}
@@ -39,7 +44,8 @@ namespace usrp_e310_cal
 			}
 			else if (args[0].StartsWith("-v"))
 			{
-				Console.WriteLine(new AssemblyVersion().Get);
+				Console.WriteLine($"Application: {new AssemblyDetails().GetName}");
+				Console.WriteLine($"Version: {new AssemblyDetails().GetVersion}");
 
 				return true;
 			}
@@ -54,7 +60,17 @@ namespace usrp_e310_cal
 			{
 				string username = GetName(args[0]);
 				string password = GetName(args[1]);
-				string comport = $"com{GetName(args[2])}";
+
+				int comport = 0;
+
+				bool isInt = int.TryParse(GetName(args[2]), out comport);
+
+				if (!isInt)
+				{
+					Console.WriteLine("COM Port must be an integer.");
+					return status;
+				}
+				
 
 				serialPort = new SerialPortFacade(
 				comport,
@@ -62,17 +78,20 @@ namespace usrp_e310_cal
 				Constants.CommPortSettings.parity,
 				Constants.CommPortSettings.dataBits,
 				Constants.CommPortSettings.stopBits,
-				Constants.CommPortSettings.handshake);
+				Constants.CommPortSettings.handshake,
+				new UsrpE310Receiver());
 
-				bool state = serialPort.Open();
+				if (!serialPort.Configured)
+					return status;
 
-				if (!state)
-				{
-					return false;
-				}
+				if (!serialPort.Open())
+					return status;
+				
 
 				status = HandleLogin(serialPort, username, password);
 				status = HandleCal(serialPort);
+
+			
 
 			}
 
@@ -111,19 +130,98 @@ namespace usrp_e310_cal
 		static private bool HandleLogin(SerialPortFacade serialPort, string username, string password)
 		{
 			bool valid = false;
-			valid = serialPort.Write(username);
-			valid = serialPort.Write(password);
-			return valid;
+
+			if (serialPort.Receiver.state == 
+				Constants.ReceiverStates.LoggedIn)
+				return valid;
+
+			if(serialPort.Receiver.state ==
+				Constants.ReceiverStates.Booted)
+			{
+				valid = serialPort.Write(username);
+
+				while (serialPort.Receiver.state ==
+					Constants.ReceiverStates.Booted);
+			}
+
+			if(serialPort.Receiver.state == 
+				Constants.ReceiverStates.UsernameEntered)
+			{
+				valid = serialPort.Write(password);
+
+				while (serialPort.Receiver.state ==
+					Constants.ReceiverStates.UsernameEntered) ;
+			}
+				
+
+			return valid && 
+				(serialPort.Receiver.state ==
+				Constants.ReceiverStates.LoggedIn);
 		}
 
 		static private bool HandleCal(SerialPortFacade serialPort)
 		{
-			return false;
+			bool valid = false;
+			if (serialPort.Receiver.state ==
+				Constants.ReceiverStates.LoggedIn)
+			{
+				valid = serialPort.Write(Constants.UHD_Cals.uhd_cal_rx_iq_balance);
+				while (serialPort.Receiver.state ==
+					Constants.ReceiverStates.LoggedIn) ;
+			}
+
+			if (serialPort.Receiver.state ==
+				Constants.ReceiverStates.RxIqCalComplete)
+			{
+				valid = serialPort.Write(Constants.UHD_Cals.uhd_cal_tx_iq_balance);
+				while (serialPort.Receiver.state ==
+					Constants.ReceiverStates.RxIqCalComplete) ;
+			}
+
+			if (serialPort.Receiver.state ==
+				Constants.ReceiverStates.TxIqCalComplete)
+			{
+				valid = serialPort.Write(Constants.UHD_Cals.uhd_cal_tx_dc_offset);
+				while (serialPort.Receiver.state ==
+					Constants.ReceiverStates.TxIqCalComplete) ;
+			}
+
+			return valid &&
+				(serialPort.Receiver.state ==
+					Constants.ReceiverStates.TxDcOffsetCalComplete);
 		}
 
 		static private bool GetReports(SerialPortFacade serialPort, string outputPath)
 		{
-			return false;
+			bool valid = false;
+
+			if (serialPort.Receiver.state ==
+				Constants.ReceiverStates.TxDcOffsetCalComplete)
+			{
+				valid = serialPort.Write(Constants.UHD_Cal_Reports.uhd_cal_rx_iq_balance);
+				while (serialPort.Receiver.state ==
+					Constants.ReceiverStates.TxDcOffsetCalComplete) ;
+			}
+
+			if (serialPort.Receiver.state ==
+				Constants.ReceiverStates.RxIqReportDownloaded)
+			{
+				valid = serialPort.Write(Constants.UHD_Cal_Reports.uhd_cal_tx_iq_balance);
+				while (serialPort.Receiver.state ==
+					Constants.ReceiverStates.RxIqReportDownloaded) ;
+			}
+
+			if (serialPort.Receiver.state ==
+				Constants.ReceiverStates.TxIqReportDownloaded)
+			{
+				valid = serialPort.Write(Constants.UHD_Cal_Reports.uhd_cal_tx_dc_offset);
+				while (serialPort.Receiver.state ==
+					Constants.ReceiverStates.TxIqReportDownloaded) ;
+			}
+
+			return valid &&
+				(serialPort.Receiver.state ==
+					Constants.ReceiverStates.TxDcOffsetReportDownloaded);
 		}
 	}
 }
